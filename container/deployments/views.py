@@ -3,6 +3,7 @@ import sys
 from django.shortcuts import render, redirect
 from django.contrib import messages
 from django.http import JsonResponse
+from django.utils.safestring import mark_safe
 from .models import RailwayDeployment
 from .forms import RailwayDeploymentForm
 
@@ -221,10 +222,13 @@ def deployment_deploy(request, pk):
         
         messages.success(
             request,
-            f'✅ {action} successfully! Project: {deployment.project_name}<br>'
-            f'Project ID: {project_id}<br>'
-            f'Service ID: {service_id}<br>'
-            f'<a href="https://railway.app/project/{project_id}" target="_blank">View on Railway</a>'
+            mark_safe(
+                f'✅ <strong>{action} successfully!</strong><br>'
+                f'<strong>Project:</strong> {deployment.project_name}<br>'
+                f'<strong>Project ID:</strong> {project_id}<br>'
+                f'<strong>Service ID:</strong> {service_id}<br>'
+                f'<a href="https://railway.app/project/{project_id}" target="_blank" style="color: #90ee90; text-decoration: underline; font-weight: 600;">View on Railway →</a>'
+            )
         )
         
     except ValueError as e:
