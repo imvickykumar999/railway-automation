@@ -217,6 +217,36 @@ class RailwayClient:
             print(f"❌ Error during service deployment: {e}")
             raise
     
+    def get_project_services(self, project_id: str) -> list:
+        """
+        Get all services in a project.
+        
+        Args:
+            project_id: Project ID
+            
+        Returns:
+            List of services
+        """
+        query = """
+        query GetProjectServices($projectId: String!) {
+            project(id: $projectId) {
+                services {
+                    edges {
+                        node {
+                            id
+                            name
+                        }
+                    }
+                }
+            }
+        }
+        """
+        
+        variables = {"projectId": project_id}
+        result = self._make_request(query, variables)
+        services = result["data"]["project"]["services"]["edges"]
+        return [edge["node"] for edge in services]
+    
     def get_project(self, project_id: str) -> Dict[str, Any]:
         """
         Get project information by ID.
@@ -239,6 +269,144 @@ class RailwayClient:
         variables = {"id": project_id}
         result = self._make_request(query, variables)
         return result["data"]["project"]
+    
+    def set_environment_variables(
+        self,
+        service_id: str,
+        environment_variables: Dict[str, str],
+        environment_name: str = "production"
+    ) -> bool:
+        """
+        Set environment variables for a service.
+        
+        Args:
+            service_id: Service ID
+            environment_variables: Dictionary of variable names to values
+            environment_name: Environment name (default: "production")
+            
+        Returns:
+            True if successful, False otherwise
+        """
+        # First, get the service to find the project and environment
+        get_service_query = """
+        query GetService($id: String!) {
+            service(id: $id) {
+                id
+                projectId
+            }
+        }
+        """
+        
+        try:
+            service_result = self._make_request(get_service_query, {"id": service_id})
+            project_id = service_result["data"]["service"]["projectId"]
+            
+            # Get environment ID - Railway uses connection pattern
+            get_env_query = """
+            query GetEnvironment($projectId: String!) {
+                environments(projectId: $projectId) {
+                    edges {
+                        node {
+                            id
+                            name
+                        }
+                    }
+                }
+            }
+            """
+            
+            env_result = self._make_request(get_env_query, {
+                "projectId": project_id
+            })
+            
+            # Extract environments from connection
+            edges = env_result["data"]["environments"]["edges"]
+            environments = [edge["node"] for edge in edges]
+            
+            # Find the environment with matching name
+            environment = None
+            for env in environments:
+                if env.get("name") == environment_name:
+                    environment = env
+                    break
+            
+            if not environment:
+                # If environment not found, use the first one or create it
+                if environments:
+                    environment = environments[0]
+                    print(f"Warning: Environment '{environment_name}' not found, using '{environment['name']}'")
+                else:
+                    print(f"Error: No environments found for project")
+                    return False
+            
+            environment_id = environment["id"]
+            
+            # Set environment variables using variableUpsert (one at a time)
+            upsert_mutation = """
+            mutation UpsertVariable($input: VariableUpsertInput!) {
+                variableUpsert(input: $input)
+            }
+            """
+            
+            # Set each variable individually
+            # Railway requires projectId, environmentId, and serviceId for service-level variables
+            for name, value in environment_variables.items():
+                # Use all three IDs for service-level variables
+                variable_input = {
+                    "projectId": project_id,
+                    "environmentId": environment_id,
+                    "serviceId": service_id,
+                    "name": name,
+                    "value": value
+                }
+                
+                try:
+                    self._make_request(upsert_mutation, {"input": variable_input})
+                except (ValueError, requests.exceptions.HTTPError) as e:
+                    # If that fails, try without serviceId (project-level variable)
+                    variable_input = {
+                        "projectId": project_id,
+                        "environmentId": environment_id,
+                        "name": name,
+                        "value": value
+                    }
+                    try:
+                        self._make_request(upsert_mutation, {"input": variable_input})
+                        print(f"  Warning: Set {name} as project-level variable (not service-specific)")
+                    except (ValueError, requests.exceptions.HTTPError) as e2:
+                        error_details = str(e2)
+                        if hasattr(e2, 'response') and hasattr(e2.response, 'text'):
+                            error_details = e2.response.text
+                        raise ValueError(f"Failed to set {name}: {error_details}")
+            
+            print(f"[OK] Set {len(environment_variables)} environment variable(s)")
+            for name in environment_variables.keys():
+                print(f"   - {name}")
+            
+            return True
+            
+        except requests.exceptions.HTTPError as e:
+            error_msg = str(e)
+            if hasattr(e, 'response') and hasattr(e.response, 'text'):
+                error_details = e.response.text
+                try:
+                    import json
+                    error_json = json.loads(error_details)
+                    if "errors" in error_json:
+                        error_msg = "; ".join([err.get("message", str(err)) for err in error_json["errors"]])
+                except:
+                    error_msg = error_details
+            print(f"Warning: Could not set environment variables: {error_msg}")
+            print(f"   You may need to set them manually in Railway dashboard")
+            return False
+        except ValueError as e:
+            print(f"Warning: Could not set environment variables: {e}")
+            print(f"   You may need to set them manually in Railway dashboard")
+            return False
+        except Exception as e:
+            print(f"Warning: Unexpected error: {e}")
+            print(f"   You may need to set them manually in Railway dashboard")
+            return False
 
 
 def main():
@@ -260,6 +428,16 @@ def main():
     project_name = os.getenv("RAILWAY_PROJECT_NAME", "My Docker Project")
     docker_image = os.getenv("RAILWAY_DOCKER_IMAGE", "kennethreitz/httpbin")
     service_name = os.getenv("RAILWAY_SERVICE_NAME")
+    
+    # Environment variables to set for the service (from .env file)
+    service_env_vars = {}
+    stream_key = os.getenv("STREAM_KEY")
+    youtube_id = os.getenv("YouTube_ID") or os.getenv("YOUTUBE_ID")
+    
+    if stream_key:
+        service_env_vars["STREAM_KEY"] = stream_key
+    if youtube_id:
+        service_env_vars["YouTube_ID"] = youtube_id
     
     # Parse command line arguments if provided
     if len(sys.argv) > 1:
@@ -293,14 +471,28 @@ def main():
             docker_image=docker_image,
             service_name=service_name
         )
+        service_id = service["id"]
+        
+        # Set environment variables if provided
+        if service_env_vars:
+            print(f"\n🔧 Setting environment variables...")
+            client.set_environment_variables(
+                service_id=service_id,
+                environment_variables=service_env_vars
+            )
+            print(f"⚠️  Note: Service will automatically redeploy with new environment variables.")
         
         print("\n" + "=" * 50)
         print("✅ Deployment Successful!")
         print("=" * 50)
         print(f"Project ID: {project_id}")
         print(f"Project Name: {project['name']}")
-        print(f"Service ID: {service['id']}")
+        print(f"Service ID: {service_id}")
         print(f"Service Name: {service.get('name', 'N/A')}")
+        if service_env_vars:
+            print(f"\nEnvironment Variables Set:")
+            for key in service_env_vars.keys():
+                print(f"  - {key}")
         print(f"\nView your project at: https://railway.app/project/{project_id}")
         
     except requests.exceptions.HTTPError as e:
