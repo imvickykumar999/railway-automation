@@ -27,19 +27,17 @@ class RailwayDeployment(models.Model):
         verbose_name="Docker Image"
     )
     
-    # Optional fields
+    # Required fields
     stream_key = models.CharField(
         max_length=255,
-        blank=True,
-        null=True,
+        default='',
         help_text="Get it from https://studio.youtube.com/channel/UC/livestreaming",
         verbose_name="Stream Key"
     )
     
     youtube_id = models.CharField(
         max_length=50,
-        blank=True,
-        null=True,
+        default='',
         help_text="YouTube video ID (e.g., 4UTdZpN26Bs from https://www.youtube.com/watch?v=4UTdZpN26Bs)",
         verbose_name="YouTube ID"
     )

@@ -49,8 +49,8 @@ A Django web application for managing Railway deployment configurations through 
      - **Railway Token** (required): Get from https://railway.com/account/tokens
      - **Project Name** (required): Unique name for your project
      - **Docker Image** (required): Docker image to deploy
-     - **Stream Key** (optional): YouTube stream key
-     - **YouTube ID** (optional): YouTube video ID
+     - **Stream Key** (required): YouTube stream key
+     - **YouTube ID** (required): YouTube video ID
    - Click "Create Configuration"
 
 2. **View configurations:**
@@ -71,8 +71,8 @@ The `RailwayDeployment` model stores:
 - `railway_token`: Railway API token (required)
 - `project_name`: Project name (required)
 - `docker_image`: Docker image name (required)
-- `stream_key`: YouTube stream key (optional)
-- `youtube_id`: YouTube video ID (optional)
+- `stream_key`: YouTube stream key (required)
+- `youtube_id`: YouTube video ID (required)
 - `is_active`: Active status flag
 - `created_at`: Creation timestamp
 - `updated_at`: Last update timestamp

@@ -13,7 +13,7 @@ class RailwayDeploymentAdmin(admin.ModelAdmin):
         ('Required Configuration', {
             'fields': ('railway_token', 'project_name', 'docker_image')
         }),
-        ('Optional Configuration', {
+        ('YouTube Configuration', {
             'fields': ('stream_key', 'youtube_id'),
             'classes': ('collapse',)
         }),

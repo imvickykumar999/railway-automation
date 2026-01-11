@@ -34,7 +34,7 @@ Automatically deploy Docker containers to Railway with environment variables con
 - Copy the token immediately (you'll only see it once)
 - This is your `RAILWAY_TOKEN`
 
-#### 2. Project Name (Optional)
+#### 2. Project Name (required)
 - Choose any name for your Railway project
 - Default: "Live Stream"
 - This is your `RAILWAY_PROJECT_NAME`

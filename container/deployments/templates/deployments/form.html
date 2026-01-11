@@ -56,6 +56,7 @@
             <div class="mb-3">
                 <label for="{{ form.stream_key.id_for_label }}" class="form-label">
                     {{ form.stream_key.label }}
+                    <span class="text-danger">*</span>
                 </label>
                 {{ form.stream_key }}
                 {% if form.stream_key.help_text %}
@@ -69,6 +70,7 @@
             <div class="mb-3">
                 <label for="{{ form.youtube_id.id_for_label }}" class="form-label">
                     {{ form.youtube_id.label }}
+                    <span class="text-danger">*</span>
                 </label>
                 {{ form.youtube_id }}
                 {% if form.youtube_id.help_text %}

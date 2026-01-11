@@ -7,8 +7,8 @@ class RailwayDeploymentForm(forms.ModelForm):
     
     # Docker image choices
     DOCKER_IMAGE_CHOICES = [
-        ('imvickykumar999/youtube-stream', 'imvickykumar999/youtube-stream (long lasting stream)'),
-        ('imvickykumar999/stream-downloader', 'imvickykumar999/stream-downloader (high quality stream)'),
+        ('imvickykumar999/youtube-stream', 'Long lasting stream'),
+        ('imvickykumar999/stream-downloader', 'High quality stream'),
     ]
     
     # Override docker_image field to use dropdown
@@ -42,11 +42,11 @@ class RailwayDeploymentForm(forms.ModelForm):
             }),
             'stream_key': forms.TextInput(attrs={
                 'class': 'form-control',
-                'placeholder': 'Your YouTube stream key (optional)',
+                'placeholder': 'Your YouTube stream key',
             }),
             'youtube_id': forms.TextInput(attrs={
                 'class': 'form-control',
-                'placeholder': '4UTdZpN26Bs (optional)',
+                'placeholder': '4UTdZpN26Bs',
             }),
         }
         help_texts = {
@@ -58,9 +58,12 @@ class RailwayDeploymentForm(forms.ModelForm):
     
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        # Make required fields more obvious
+        # Make all fields required
         self.fields['railway_token'].required = True
         self.fields['project_name'].required = True
+        self.fields['docker_image'].required = True
+        self.fields['stream_key'].required = True
+        self.fields['youtube_id'].required = True
         
         # Set default value for docker_image if instance exists
         if self.instance and self.instance.pk:
