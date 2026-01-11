@@ -57,7 +57,15 @@
         </dl>
 
         <div class="mt-4">
-            <a href="{% url 'deployments:deployment_list' %}" class="btn btn-secondary">Back to List</a>
+            <div class="d-flex gap-2 align-items-center">
+                <a href="{% url 'deployments:deployment_list' %}" class="btn btn-secondary">Back to List</a>
+                <form method="post" action="{% url 'deployments:deployment_deploy' deployment.pk %}" style="display: inline;">
+                    {% csrf_token %}
+                    <button type="submit" class="btn btn-success btn-lg" onclick="return confirm('Are you sure you want to deploy this configuration to Railway? This will create a new project and deploy the Docker container.');">
+                        🚀 Deploy to Railway
+                    </button>
+                </form>
+            </div>
         </div>
     </div>
 </div>

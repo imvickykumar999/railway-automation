@@ -1,7 +1,20 @@
+import os
+import sys
 from django.shortcuts import render, redirect
 from django.contrib import messages
+from django.http import JsonResponse
 from .models import RailwayDeployment
 from .forms import RailwayDeploymentForm
+
+# Import RailwayClient from the parent directory (railway-automation root)
+# views.py is at: container/deployments/views.py
+# railway_deploy.py is at: railway_deploy.py (root)
+container_dir = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+sys.path.insert(0, container_dir)
+try:
+    from railway_deploy import RailwayClient
+except ImportError:
+    RailwayClient = None
 
 
 def deployment_form(request):
@@ -71,4 +84,69 @@ def deployment_delete(request, pk):
         return redirect('deployments:deployment_list')
     
     return render(request, 'deployments/delete.html', {'deployment': deployment})
+
+
+def deployment_deploy(request, pk):
+    """Deploy the configuration to Railway."""
+    if request.method != 'POST':
+        messages.error(request, 'Invalid request method.')
+        return redirect('deployments:deployment_detail', pk=pk)
+    
+    try:
+        deployment = RailwayDeployment.objects.get(pk=pk)
+    except RailwayDeployment.DoesNotExist:
+        messages.error(request, 'Deployment configuration not found.')
+        return redirect('deployments:deployment_list')
+    
+    if RailwayClient is None:
+        messages.error(request, 'Railway deployment module not found. Please ensure railway_deploy.py is available.')
+        return redirect('deployments:deployment_detail', pk=pk)
+    
+    try:
+        # Initialize Railway client
+        client = RailwayClient(deployment.railway_token)
+        
+        # Create project
+        project = client.create_project(deployment.project_name)
+        project_id = project["id"]
+        
+        # Deploy Docker container
+        service = client.deploy_docker_image(
+            project_id=project_id,
+            docker_image=deployment.docker_image,
+            service_name=None
+        )
+        service_id = service["id"]
+        
+        # Set environment variables if provided
+        service_env_vars = {}
+        if deployment.stream_key:
+            service_env_vars["STREAM_KEY"] = deployment.stream_key
+        if deployment.youtube_id:
+            service_env_vars["YouTube_ID"] = deployment.youtube_id
+        
+        if service_env_vars:
+            client.set_environment_variables(
+                service_id=service_id,
+                environment_variables=service_env_vars
+            )
+        
+        messages.success(
+            request,
+            f'✅ Deployment successful! Project: {deployment.project_name}<br>'
+            f'Project ID: {project_id}<br>'
+            f'Service ID: {service_id}<br>'
+            f'<a href="https://railway.app/project/{project_id}" target="_blank">View on Railway</a>'
+        )
+        
+    except ValueError as e:
+        error_msg = str(e)
+        # Extract more user-friendly error messages
+        if "GraphQL errors" in error_msg:
+            error_msg = error_msg.replace("GraphQL errors: ", "")
+        messages.error(request, f'❌ Deployment failed: {error_msg}')
+    except Exception as e:
+        messages.error(request, f'❌ Deployment failed: {str(e)}')
+    
+    return redirect('deployments:deployment_detail', pk=pk)
 
