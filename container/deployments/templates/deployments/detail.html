@@ -70,11 +70,11 @@
         </dl>
 
         <div class="mt-4">
-            <div class="d-flex gap-2 align-items-center">
-                <a href="{% url 'deployments:deployment_list' %}" class="btn btn-secondary">Back to List</a>
-                <form method="post" action="{% url 'deployments:deployment_deploy' deployment.pk %}" id="deploy-form" style="display: inline;">
+            <div class="d-flex gap-2">
+                <a href="{% url 'deployments:deployment_list' %}" class="btn btn-secondary flex-fill">Back to List</a>
+                <form method="post" action="{% url 'deployments:deployment_deploy' deployment.pk %}" id="deploy-form" class="flex-fill d-flex">
                     {% csrf_token %}
-                    <button type="submit" id="deploy-btn" class="btn btn-success btn-lg">
+                    <button type="submit" id="deploy-btn" class="btn btn-success btn-lg flex-fill">
                         <span id="deploy-text">🚀 {% if deployment.railway_project_id %}Redeploy{% else %}Deploy{% endif %} to Railway</span>
                         <span id="deploy-spinner" class="spinner-border spinner-border-sm d-none" role="status" aria-hidden="true"></span>
                     </button>
