@@ -72,12 +72,55 @@ def deployment_edit(request, pk):
 
 
 def deployment_delete(request, pk):
-    """Delete a deployment configuration."""
+    """Delete a deployment configuration and Railway project."""
     try:
         deployment = RailwayDeployment.objects.get(pk=pk)
         if request.method == 'POST':
+            # Delete Railway project if it exists
+            if deployment.railway_project_id and RailwayClient is not None:
+                try:
+                    client = RailwayClient(deployment.railway_token)
+                    
+                    # Delete Railway project
+                    delete_project_mutation = """
+                    mutation DeleteProject($id: String!) {
+                        projectDelete(id: $id)
+                    }
+                    """
+                    
+                    try:
+                        client._make_request(delete_project_mutation, {"id": deployment.railway_project_id})
+                        messages.success(
+                            request,
+                            f'Railway project "{deployment.project_name}" deleted successfully! '
+                            f'Local configuration also deleted.'
+                        )
+                    except Exception as e:
+                        # If Railway deletion fails, still delete local record
+                        error_msg = str(e)
+                        if "GraphQL errors" in error_msg:
+                            error_msg = error_msg.replace("GraphQL errors: ", "")
+                        messages.warning(
+                            request,
+                            f'Could not delete Railway project: {error_msg}. '
+                            f'Local configuration deleted anyway.'
+                        )
+                except Exception as e:
+                    messages.warning(
+                        request,
+                        f'Error connecting to Railway API: {str(e)}. '
+                        f'Local configuration deleted anyway.'
+                    )
+            
+            # Delete local database record
+            project_name = deployment.project_name
+            had_railway_project = bool(deployment.railway_project_id)
             deployment.delete()
-            messages.success(request, 'Deployment configuration deleted successfully!')
+            
+            # If no Railway project was deleted, show simple success message
+            if not had_railway_project:
+                messages.success(request, f'Deployment configuration "{project_name}" deleted successfully!')
+            
             return redirect('deployments:deployment_list')
     except RailwayDeployment.DoesNotExist:
         messages.error(request, 'Deployment configuration not found.')

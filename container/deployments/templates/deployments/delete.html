@@ -9,7 +9,15 @@
     </div>
     <div class="card-body">
         <p>Are you sure you want to delete the deployment configuration for <strong>{{ deployment.project_name }}</strong>?</p>
-        <p class="text-muted">This action cannot be undone.</p>
+        {% if deployment.railway_project_id %}
+            <div class="alert alert-warning">
+                <strong>Warning:</strong> This will also delete the Railway project 
+                (<code>{{ deployment.railway_project_id }}</code>) and all its services. 
+                This action cannot be undone.
+            </div>
+        {% else %}
+            <p class="text-muted">This action cannot be undone.</p>
+        {% endif %}
         
         <form method="post">
             {% csrf_token %}
