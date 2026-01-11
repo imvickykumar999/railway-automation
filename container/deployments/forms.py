@@ -43,6 +43,7 @@ class RailwayDeploymentForm(forms.ModelForm):
             'stream_key': forms.TextInput(attrs={
                 'class': 'form-control',
                 'placeholder': 'Your YouTube stream key',
+                'type': 'password',  # Hide stream key input
             }),
             'youtube_id': forms.TextInput(attrs={
                 'class': 'form-control',

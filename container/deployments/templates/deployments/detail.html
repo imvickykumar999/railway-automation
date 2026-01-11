@@ -121,27 +121,68 @@
     </div>
 </div>
 
+<!-- Custom Confirmation Modal -->
+<div class="modal fade" id="deployConfirmModal" tabindex="-1" aria-labelledby="deployConfirmModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="deployConfirmModalLabel">
+                    🚀 {% if deployment.railway_project_id %}Redeploy{% else %}Deploy{% endif %} to Railway
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <p>{% if deployment.railway_project_id %}Redeploy{% else %}Deploy{% endif %} this configuration to Railway?</p>
+                <p class="mb-0">{% if deployment.railway_project_id %}This will delete the existing service and create a new one.{% else %}This will create a new project and deploy the Docker container.{% endif %}</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-success" id="confirmDeployBtn">
+                    <span id="confirmDeployText">{% if deployment.railway_project_id %}Redeploy{% else %}Deploy{% endif %}</span>
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
 <script>
 document.addEventListener('DOMContentLoaded', function() {
     const deployForm = document.getElementById('deploy-form');
     const deployBtn = document.getElementById('deploy-btn');
     const deployText = document.getElementById('deploy-text');
     const deploySpinner = document.getElementById('deploy-spinner');
+    const confirmModal = new bootstrap.Modal(document.getElementById('deployConfirmModal'));
+    const confirmDeployBtn = document.getElementById('confirmDeployBtn');
+    const confirmDeployText = document.getElementById('confirmDeployText');
     
     if (deployForm) {
         deployForm.addEventListener('submit', function(e) {
-            const confirmed = confirm('{% if deployment.railway_project_id %}Redeploy{% else %}Deploy{% endif %} this configuration to Railway?{% if deployment.railway_project_id %} This will delete the existing service and create a new one.{% else %} This will create a new project and deploy the Docker container.{% endif %}');
+            e.preventDefault(); // Always prevent default to show modal
             
-            if (confirmed) {
-                // Show loading spinner
-                deploySpinner.classList.remove('d-none');
-                deployText.innerHTML = 'Deploying...';
-                deployBtn.disabled = true;
-                deployBtn.style.opacity = '0.7';
-                deployBtn.style.cursor = 'not-allowed';
-            } else {
-                e.preventDefault();
-            }
+            // Show modal
+            confirmModal.show();
+        });
+    }
+    
+    // Handle confirm button click
+    if (confirmDeployBtn) {
+        confirmDeployBtn.addEventListener('click', function() {
+            // Hide modal
+            confirmModal.hide();
+            
+            // Show loading spinner
+            deploySpinner.classList.remove('d-none');
+            deployText.innerHTML = 'Deploying...';
+            deployBtn.disabled = true;
+            deployBtn.style.opacity = '0.7';
+            deployBtn.style.cursor = 'not-allowed';
+            
+            // Disable confirm button
+            confirmDeployBtn.disabled = true;
+            confirmDeployText.innerHTML = 'Deploying...';
+            
+            // Submit the form
+            deployForm.submit();
         });
     }
 });
@@ -171,6 +212,65 @@ document.addEventListener('DOMContentLoaded', function() {
 
 .collapse .card {
     border-radius: 5px;
+}
+
+/* Custom Modal Styling */
+.modal-content {
+    background: linear-gradient(135deg, var(--bg-card) 0%, var(--medium-gray) 100%);
+    border: 2px solid var(--primary-red);
+    border-radius: 10px;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5), 0 0 20px rgba(220, 53, 69, 0.3);
+    color: var(--text-primary);
+}
+
+[data-theme="light"] .modal-content {
+    background: linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%);
+    border: 2px solid var(--primary-red);
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2);
+}
+
+.modal-header {
+    background: linear-gradient(135deg, var(--bg-navbar) 0%, var(--bg-secondary) 100%);
+    border-bottom: 2px solid var(--primary-red);
+    color: var(--text-primary);
+}
+
+[data-theme="light"] .modal-header {
+    background: linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%);
+}
+
+.modal-title {
+    color: var(--primary-red);
+    font-weight: 700;
+    font-size: 1.2rem;
+}
+
+.modal-body {
+    color: var(--text-primary);
+    padding: 20px;
+}
+
+.modal-body p {
+    margin-bottom: 10px;
+    line-height: 1.6;
+}
+
+.modal-footer {
+    border-top: 1px solid var(--primary-red);
+    padding: 15px 20px;
+}
+
+.modal-backdrop {
+    background-color: rgba(0, 0, 0, 0.7);
+    backdrop-filter: blur(2px);
+}
+
+.btn-close-white {
+    filter: invert(1) grayscale(100%) brightness(200%);
+}
+
+[data-theme="light"] .btn-close-white {
+    filter: none;
 }
 </style>
 {% endblock %}
