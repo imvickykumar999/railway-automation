@@ -44,6 +44,23 @@ class RailwayDeployment(models.Model):
         verbose_name="YouTube ID"
     )
     
+    # Deployment tracking
+    railway_project_id = models.CharField(
+        max_length=255,
+        blank=True,
+        null=True,
+        help_text="Railway project ID (set after first deployment)",
+        verbose_name="Railway Project ID"
+    )
+    
+    railway_service_id = models.CharField(
+        max_length=255,
+        blank=True,
+        null=True,
+        help_text="Railway service ID (set after first deployment)",
+        verbose_name="Railway Service ID"
+    )
+    
     # Metadata
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)

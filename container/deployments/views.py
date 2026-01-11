@@ -106,17 +106,66 @@ def deployment_deploy(request, pk):
         # Initialize Railway client
         client = RailwayClient(deployment.railway_token)
         
-        # Create project
-        project = client.create_project(deployment.project_name)
-        project_id = project["id"]
-        
-        # Deploy Docker container
-        service = client.deploy_docker_image(
-            project_id=project_id,
-            docker_image=deployment.docker_image,
-            service_name=None
-        )
-        service_id = service["id"]
+        # Check if this deployment already has a project_id (redeploy scenario)
+        if deployment.railway_project_id and deployment.railway_service_id:
+            # Redeploy to existing project
+            project_id = deployment.railway_project_id
+            service_id = deployment.railway_service_id
+            
+            # Update the service with new Docker image
+            update_service_mutation = """
+            mutation UpdateService($id: String!, $input: ServiceUpdateInput!) {
+                serviceUpdate(id: $id, input: $input) {
+                    id
+                    name
+                }
+            }
+            """
+            
+            update_variables = {
+                "id": service_id,
+                "input": {
+                    "source": {
+                        "image": deployment.docker_image
+                    }
+                }
+            }
+            
+            try:
+                client._make_request(update_service_mutation, update_variables)
+                action = "Redeployed"
+                # Save to update timestamp
+                deployment.save()
+            except Exception as e:
+                # If update fails, try creating a new service in the same project
+                service = client.deploy_docker_image(
+                    project_id=project_id,
+                    docker_image=deployment.docker_image,
+                    service_name=None
+                )
+                service_id = service["id"]
+                deployment.railway_service_id = service_id
+                deployment.save()
+                action = "New service created"
+        else:
+            # First time deployment - create new project
+            project = client.create_project(deployment.project_name)
+            project_id = project["id"]
+            
+            # Deploy Docker container
+            service = client.deploy_docker_image(
+                project_id=project_id,
+                docker_image=deployment.docker_image,
+                service_name=None
+            )
+            service_id = service["id"]
+            
+            # Save project and service IDs
+            deployment.railway_project_id = project_id
+            deployment.railway_service_id = service_id
+            deployment.save()
+            
+            action = "Deployed"
         
         # Set environment variables if provided
         service_env_vars = {}
@@ -131,9 +180,14 @@ def deployment_deploy(request, pk):
                 environment_variables=service_env_vars
             )
         
+        # Update service_id if it changed
+        if deployment.railway_service_id != service_id:
+            deployment.railway_service_id = service_id
+            deployment.save()
+        
         messages.success(
             request,
-            f'✅ Deployment successful! Project: {deployment.project_name}<br>'
+            f'✅ {action} successfully! Project: {deployment.project_name}<br>'
             f'Project ID: {project_id}<br>'
             f'Service ID: {service_id}<br>'
             f'<a href="https://railway.app/project/{project_id}" target="_blank">View on Railway</a>'

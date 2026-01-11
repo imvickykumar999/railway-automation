@@ -40,6 +40,19 @@
             </dd>
             {% endif %}
 
+            {% if deployment.railway_project_id %}
+            <dt class="col-sm-3">Railway Project ID:</dt>
+            <dd class="col-sm-9">
+                <code>{{ deployment.railway_project_id }}</code>
+                <a href="https://railway.app/project/{{ deployment.railway_project_id }}" target="_blank" class="btn btn-sm btn-link">View on Railway</a>
+            </dd>
+            
+            {% if deployment.railway_service_id %}
+            <dt class="col-sm-3">Railway Service ID:</dt>
+            <dd class="col-sm-9"><code>{{ deployment.railway_service_id }}</code></dd>
+            {% endif %}
+            {% endif %}
+
             <dt class="col-sm-3">Status:</dt>
             <dd class="col-sm-9">
                 {% if deployment.is_active %}
@@ -61,8 +74,8 @@
                 <a href="{% url 'deployments:deployment_list' %}" class="btn btn-secondary">Back to List</a>
                 <form method="post" action="{% url 'deployments:deployment_deploy' deployment.pk %}" style="display: inline;">
                     {% csrf_token %}
-                    <button type="submit" class="btn btn-success btn-lg" onclick="return confirm('Are you sure you want to deploy this configuration to Railway? This will create a new project and deploy the Docker container.');">
-                        🚀 Deploy to Railway
+                    <button type="submit" class="btn btn-success btn-lg" onclick="return confirm('{% if deployment.railway_project_id %}Redeploy{% else %}Deploy{% endif %} this configuration to Railway?{% if deployment.railway_project_id %} This will update the existing deployment.{% else %} This will create a new project and deploy the Docker container.{% endif %}');">
+                        🚀 {% if deployment.railway_project_id %}Redeploy{% else %}Deploy{% endif %} to Railway
                     </button>
                 </form>
             </div>
