@@ -108,45 +108,36 @@ def deployment_deploy(request, pk):
         
         # Check if this deployment already has a project_id (redeploy scenario)
         if deployment.railway_project_id and deployment.railway_service_id:
-            # Redeploy to existing project
+            # Redeploy to existing project - delete old service and create new one
             project_id = deployment.railway_project_id
-            service_id = deployment.railway_service_id
+            old_service_id = deployment.railway_service_id
             
-            # Update the service with new Docker image
-            update_service_mutation = """
-            mutation UpdateService($id: String!, $input: ServiceUpdateInput!) {
-                serviceUpdate(id: $id, input: $input) {
-                    id
-                    name
-                }
+            # Delete the existing service
+            delete_service_mutation = """
+            mutation DeleteService($id: String!) {
+                serviceDelete(id: $id)
             }
             """
             
-            update_variables = {
-                "id": service_id,
-                "input": {
-                    "source": {
-                        "image": deployment.docker_image
-                    }
-                }
-            }
-            
             try:
-                client._make_request(update_service_mutation, update_variables)
-                action = "Redeployed"
-                # Save to update timestamp
-                deployment.save()
+                client._make_request(delete_service_mutation, {"id": old_service_id})
             except Exception as e:
-                # If update fails, try creating a new service in the same project
-                service = client.deploy_docker_image(
-                    project_id=project_id,
-                    docker_image=deployment.docker_image,
-                    service_name=None
-                )
-                service_id = service["id"]
-                deployment.railway_service_id = service_id
-                deployment.save()
-                action = "New service created"
+                # If deletion fails, log but continue (service might already be deleted)
+                pass
+            
+            # Create a new service in the same project
+            service = client.deploy_docker_image(
+                project_id=project_id,
+                docker_image=deployment.docker_image,
+                service_name=None
+            )
+            service_id = service["id"]
+            
+            # Update service_id in database
+            deployment.railway_service_id = service_id
+            deployment.save()
+            
+            action = "Redeployed"
         else:
             # First time deployment - create new project
             project = client.create_project(deployment.project_name)
