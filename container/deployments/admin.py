@@ -1,0 +1,24 @@
+from django.contrib import admin
+from .models import RailwayDeployment
+
+
+@admin.register(RailwayDeployment)
+class RailwayDeploymentAdmin(admin.ModelAdmin):
+    list_display = ['project_name', 'docker_image', 'is_active', 'created_at']
+    list_filter = ['is_active', 'created_at']
+    search_fields = ['project_name', 'docker_image']
+    readonly_fields = ['created_at', 'updated_at']
+    
+    fieldsets = (
+        ('Required Configuration', {
+            'fields': ('railway_token', 'project_name', 'docker_image')
+        }),
+        ('Optional Configuration', {
+            'fields': ('stream_key', 'youtube_id'),
+            'classes': ('collapse',)
+        }),
+        ('Status', {
+            'fields': ('is_active', 'created_at', 'updated_at')
+        }),
+    )
+

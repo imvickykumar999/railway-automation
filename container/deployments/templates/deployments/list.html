@@ -1,0 +1,47 @@
+{% extends 'deployments/base.html' %}
+
+{% block title %}Deployment Configurations{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2>Deployment Configurations</h2>
+    <a href="{% url 'deployments:deployment_form' %}" class="btn btn-primary">+ New Configuration</a>
+</div>
+
+{% if deployments %}
+    <div class="row">
+        {% for deployment in deployments %}
+        <div class="col-md-6 mb-3">
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title">{{ deployment.project_name }}</h5>
+                    <p class="card-text">
+                        <strong>Docker Image:</strong> {{ deployment.docker_image }}<br>
+                        {% if deployment.stream_key %}
+                            <strong>Stream Key:</strong> {{ deployment.stream_key|truncatechars:20 }}...<br>
+                        {% endif %}
+                        {% if deployment.youtube_id %}
+                            <strong>YouTube ID:</strong> {{ deployment.youtube_id }}<br>
+                        {% endif %}
+                        <small class="text-muted">Created: {{ deployment.created_at|date:"M d, Y H:i" }}</small>
+                    </p>
+                    <div class="btn-group" role="group">
+                        <a href="{% url 'deployments:deployment_detail' deployment.pk %}" class="btn btn-sm btn-outline-primary">View</a>
+                        <a href="{% url 'deployments:deployment_edit' deployment.pk %}" class="btn btn-sm btn-outline-secondary">Edit</a>
+                        <a href="{% url 'deployments:deployment_delete' deployment.pk %}" class="btn btn-sm btn-outline-danger">Delete</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+{% else %}
+    <div class="card">
+        <div class="card-body text-center">
+            <p class="card-text">No deployment configurations yet.</p>
+            <a href="{% url 'deployments:deployment_form' %}" class="btn btn-primary">Create Your First Configuration</a>
+        </div>
+    </div>
+{% endif %}
+{% endblock %}
+

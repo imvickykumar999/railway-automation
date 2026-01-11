@@ -1,0 +1,65 @@
+{% extends 'deployments/base.html' %}
+
+{% block title %}{{ deployment.project_name }} - Details{% endblock %}
+
+{% block content %}
+<div class="card">
+    <div class="card-header d-flex justify-content-between align-items-center">
+        <h4>{{ deployment.project_name }}</h4>
+        <div>
+            <a href="{% url 'deployments:deployment_edit' deployment.pk %}" class="btn btn-sm btn-primary">Edit</a>
+            <a href="{% url 'deployments:deployment_delete' deployment.pk %}" class="btn btn-sm btn-danger">Delete</a>
+        </div>
+    </div>
+    <div class="card-body">
+        <dl class="row">
+            <dt class="col-sm-3">Railway Token:</dt>
+            <dd class="col-sm-9">
+                <code>{{ deployment.railway_token|truncatechars:20 }}...</code>
+                <small class="text-muted">(hidden for security)</small>
+            </dd>
+
+            <dt class="col-sm-3">Project Name:</dt>
+            <dd class="col-sm-9">{{ deployment.project_name }}</dd>
+
+            <dt class="col-sm-3">Docker Image:</dt>
+            <dd class="col-sm-9"><code>{{ deployment.docker_image }}</code></dd>
+
+            {% if deployment.stream_key %}
+            <dt class="col-sm-3">Stream Key:</dt>
+            <dd class="col-sm-9">
+                <code>{{ deployment.stream_key|truncatechars:20 }}...</code>
+            </dd>
+            {% endif %}
+
+            {% if deployment.youtube_id %}
+            <dt class="col-sm-3">YouTube ID:</dt>
+            <dd class="col-sm-9">
+                <code>{{ deployment.youtube_id }}</code>
+                <a href="https://www.youtube.com/watch?v={{ deployment.youtube_id }}" target="_blank" class="btn btn-sm btn-link">View Video</a>
+            </dd>
+            {% endif %}
+
+            <dt class="col-sm-3">Status:</dt>
+            <dd class="col-sm-9">
+                {% if deployment.is_active %}
+                    <span class="badge bg-success">Active</span>
+                {% else %}
+                    <span class="badge bg-secondary">Inactive</span>
+                {% endif %}
+            </dd>
+
+            <dt class="col-sm-3">Created:</dt>
+            <dd class="col-sm-9">{{ deployment.created_at|date:"F d, Y H:i:s" }}</dd>
+
+            <dt class="col-sm-3">Last Updated:</dt>
+            <dd class="col-sm-9">{{ deployment.updated_at|date:"F d, Y H:i:s" }}</dd>
+        </dl>
+
+        <div class="mt-4">
+            <a href="{% url 'deployments:deployment_list' %}" class="btn btn-secondary">Back to List</a>
+        </div>
+    </div>
+</div>
+{% endblock %}
+

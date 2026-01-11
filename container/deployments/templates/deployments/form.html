@@ -1,0 +1,90 @@
+{% extends 'deployments/base.html' %}
+
+{% block title %}{% if deployment %}Edit{% else %}New{% endif %} Deployment Configuration{% endblock %}
+
+{% block content %}
+<div class="card">
+    <div class="card-header">
+        <h4>{% if deployment %}Edit{% else %}Create New{% endif %} Deployment Configuration</h4>
+    </div>
+    <div class="card-body">
+        <form method="post">
+            {% csrf_token %}
+            
+            <div class="mb-3">
+                <label for="{{ form.railway_token.id_for_label }}" class="form-label">
+                    {{ form.railway_token.label }}
+                    <span class="text-danger">*</span>
+                </label>
+                {{ form.railway_token }}
+                {% if form.railway_token.help_text %}
+                    <div class="help-text">{{ form.railway_token.help_text|safe }}</div>
+                {% endif %}
+                {% if form.railway_token.errors %}
+                    <div class="text-danger">{{ form.railway_token.errors }}</div>
+                {% endif %}
+            </div>
+
+            <div class="mb-3">
+                <label for="{{ form.project_name.id_for_label }}" class="form-label">
+                    {{ form.project_name.label }}
+                    <span class="text-danger">*</span>
+                </label>
+                {{ form.project_name }}
+                {% if form.project_name.help_text %}
+                    <div class="help-text">{{ form.project_name.help_text }}</div>
+                {% endif %}
+                {% if form.project_name.errors %}
+                    <div class="text-danger">{{ form.project_name.errors }}</div>
+                {% endif %}
+            </div>
+
+            <div class="mb-3">
+                <label for="{{ form.docker_image.id_for_label }}" class="form-label">
+                    {{ form.docker_image.label }}
+                    <span class="text-danger">*</span>
+                </label>
+                {{ form.docker_image }}
+                {% if form.docker_image.help_text %}
+                    <div class="help-text">{{ form.docker_image.help_text }}</div>
+                {% endif %}
+                {% if form.docker_image.errors %}
+                    <div class="text-danger">{{ form.docker_image.errors }}</div>
+                {% endif %}
+            </div>
+
+            <div class="mb-3">
+                <label for="{{ form.stream_key.id_for_label }}" class="form-label">
+                    {{ form.stream_key.label }}
+                </label>
+                {{ form.stream_key }}
+                {% if form.stream_key.help_text %}
+                    <div class="help-text">{{ form.stream_key.help_text|safe }}</div>
+                {% endif %}
+                {% if form.stream_key.errors %}
+                    <div class="text-danger">{{ form.stream_key.errors }}</div>
+                {% endif %}
+            </div>
+
+            <div class="mb-3">
+                <label for="{{ form.youtube_id.id_for_label }}" class="form-label">
+                    {{ form.youtube_id.label }}
+                </label>
+                {{ form.youtube_id }}
+                {% if form.youtube_id.help_text %}
+                    <div class="help-text">{{ form.youtube_id.help_text }}</div>
+                {% endif %}
+                {% if form.youtube_id.errors %}
+                    <div class="text-danger">{{ form.youtube_id.errors }}</div>
+                {% endif %}
+            </div>
+
+            <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                <a href="{% url 'deployments:deployment_list' %}" class="btn btn-secondary">Cancel</a>
+                <button type="submit" class="btn btn-primary">{% if deployment %}Update{% else %}Create{% endif %} Configuration</button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}
+

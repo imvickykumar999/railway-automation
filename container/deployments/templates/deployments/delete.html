@@ -1,0 +1,24 @@
+{% extends 'deployments/base.html' %}
+
+{% block title %}Delete {{ deployment.project_name }}{% endblock %}
+
+{% block content %}
+<div class="card">
+    <div class="card-header">
+        <h4>Delete Deployment Configuration</h4>
+    </div>
+    <div class="card-body">
+        <p>Are you sure you want to delete the deployment configuration for <strong>{{ deployment.project_name }}</strong>?</p>
+        <p class="text-muted">This action cannot be undone.</p>
+        
+        <form method="post">
+            {% csrf_token %}
+            <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                <a href="{% url 'deployments:deployment_detail' deployment.pk %}" class="btn btn-secondary">Cancel</a>
+                <button type="submit" class="btn btn-danger">Delete Configuration</button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}
+
