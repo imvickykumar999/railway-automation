@@ -72,15 +72,51 @@
         <div class="mt-4">
             <div class="d-flex gap-2 align-items-center">
                 <a href="{% url 'deployments:deployment_list' %}" class="btn btn-secondary">Back to List</a>
-                <form method="post" action="{% url 'deployments:deployment_deploy' deployment.pk %}" style="display: inline;">
+                <form method="post" action="{% url 'deployments:deployment_deploy' deployment.pk %}" id="deploy-form" style="display: inline;">
                     {% csrf_token %}
-                    <button type="submit" class="btn btn-success btn-lg" onclick="return confirm('{% if deployment.railway_project_id %}Redeploy{% else %}Deploy{% endif %} this configuration to Railway?{% if deployment.railway_project_id %} This will update the existing deployment.{% else %} This will create a new project and deploy the Docker container.{% endif %}');">
-                        🚀 {% if deployment.railway_project_id %}Redeploy{% else %}Deploy{% endif %} to Railway
+                    <button type="submit" id="deploy-btn" class="btn btn-success btn-lg">
+                        <span id="deploy-text">🚀 {% if deployment.railway_project_id %}Redeploy{% else %}Deploy{% endif %} to Railway</span>
+                        <span id="deploy-spinner" class="spinner-border spinner-border-sm d-none" role="status" aria-hidden="true"></span>
                     </button>
                 </form>
             </div>
         </div>
     </div>
 </div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const deployForm = document.getElementById('deploy-form');
+    const deployBtn = document.getElementById('deploy-btn');
+    const deployText = document.getElementById('deploy-text');
+    const deploySpinner = document.getElementById('deploy-spinner');
+    
+    if (deployForm) {
+        deployForm.addEventListener('submit', function(e) {
+            const confirmed = confirm('{% if deployment.railway_project_id %}Redeploy{% else %}Deploy{% endif %} this configuration to Railway?{% if deployment.railway_project_id %} This will delete the existing service and create a new one.{% else %} This will create a new project and deploy the Docker container.{% endif %}');
+            
+            if (confirmed) {
+                // Show loading spinner
+                deploySpinner.classList.remove('d-none');
+                deployText.innerHTML = 'Deploying...';
+                deployBtn.disabled = true;
+                deployBtn.style.opacity = '0.7';
+                deployBtn.style.cursor = 'not-allowed';
+            } else {
+                e.preventDefault();
+            }
+        });
+    }
+});
+</script>
+
+<style>
+.spinner-border-sm {
+    width: 1rem;
+    height: 1rem;
+    border-width: 0.15em;
+    margin-left: 8px;
+}
+</style>
 {% endblock %}
 
