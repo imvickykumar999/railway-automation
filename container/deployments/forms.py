@@ -46,7 +46,7 @@ class RailwayDeploymentForm(forms.ModelForm):
             }),
             'youtube_id': forms.TextInput(attrs={
                 'class': 'form-control',
-                'placeholder': '4UTdZpN26Bs',
+                'placeholder': 'YouTube Video ID',
             }),
         }
         help_texts = {

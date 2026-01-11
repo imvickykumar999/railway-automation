@@ -12,46 +12,10 @@
         </div>
     </div>
     <div class="card-body">
-        <dl class="row">
-            <dt class="col-sm-3">Railway Token:</dt>
-            <dd class="col-sm-9">
-                <code>{{ deployment.railway_token|truncatechars:20 }}...</code>
-                <small class="text-muted">(hidden for security)</small>
-            </dd>
-
+        <!-- Basic Info (Always Visible) -->
+        <dl class="row mb-3">
             <dt class="col-sm-3">Project Name:</dt>
             <dd class="col-sm-9">{{ deployment.project_name }}</dd>
-
-            <dt class="col-sm-3">Docker Image:</dt>
-            <dd class="col-sm-9"><code>{{ deployment.docker_image }}</code></dd>
-
-            {% if deployment.stream_key %}
-            <dt class="col-sm-3">Stream Key:</dt>
-            <dd class="col-sm-9">
-                <code>{{ deployment.stream_key|truncatechars:20 }}...</code>
-            </dd>
-            {% endif %}
-
-            {% if deployment.youtube_id %}
-            <dt class="col-sm-3">YouTube ID:</dt>
-            <dd class="col-sm-9">
-                <code>{{ deployment.youtube_id }}</code>
-                <a href="https://www.youtube.com/watch?v={{ deployment.youtube_id }}" target="_blank" class="btn btn-sm btn-link">View Video</a>
-            </dd>
-            {% endif %}
-
-            {% if deployment.railway_project_id %}
-            <dt class="col-sm-3">Railway Project ID:</dt>
-            <dd class="col-sm-9">
-                <code>{{ deployment.railway_project_id }}</code>
-                <a href="https://railway.app/project/{{ deployment.railway_project_id }}" target="_blank" class="btn btn-sm btn-link">View on Railway</a>
-            </dd>
-            
-            {% if deployment.railway_service_id %}
-            <dt class="col-sm-3">Railway Service ID:</dt>
-            <dd class="col-sm-9"><code>{{ deployment.railway_service_id }}</code></dd>
-            {% endif %}
-            {% endif %}
 
             <dt class="col-sm-3">Status:</dt>
             <dd class="col-sm-9">
@@ -61,13 +25,86 @@
                     <span class="badge bg-secondary">Inactive</span>
                 {% endif %}
             </dd>
-
-            <dt class="col-sm-3">Created:</dt>
-            <dd class="col-sm-9">{{ deployment.created_at|date:"F d, Y H:i:s" }}</dd>
-
-            <dt class="col-sm-3">Last Updated:</dt>
-            <dd class="col-sm-9">{{ deployment.updated_at|date:"F d, Y H:i:s" }}</dd>
         </dl>
+
+        <!-- Configuration Details (Collapsible) -->
+        <div class="mb-3">
+            <button class="btn btn-sm btn-outline-primary w-100 text-start" type="button" data-bs-toggle="collapse" data-bs-target="#configDetails" aria-expanded="false" aria-controls="configDetails">
+                <strong>Configuration Details</strong> <span class="float-end">▼</span>
+            </button>
+            <div class="collapse" id="configDetails">
+                <div class="card card-body mt-2" style="background-color: transparent; border: 1px solid var(--primary-red);">
+                    <dl class="row mb-0">
+                        <dt class="col-sm-3">Railway Token:</dt>
+                        <dd class="col-sm-9">
+                            <code>{{ deployment.railway_token|truncatechars:20 }}...</code>
+                            <small class="text-muted">(hidden for security)</small>
+                        </dd>
+
+                        <dt class="col-sm-3">Docker Image:</dt>
+                        <dd class="col-sm-9"><code>{{ deployment.docker_image }}</code></dd>
+
+                        {% if deployment.stream_key %}
+                        <dt class="col-sm-3">Stream Key:</dt>
+                        <dd class="col-sm-9">
+                            <code>{{ deployment.stream_key|truncatechars:20 }}...</code>
+                        </dd>
+                        {% endif %}
+
+                        {% if deployment.youtube_id %}
+                        <dt class="col-sm-3">YouTube ID:</dt>
+                        <dd class="col-sm-9">
+                            <code>{{ deployment.youtube_id }}</code>
+                            <a href="https://www.youtube.com/watch?v={{ deployment.youtube_id }}" target="_blank" class="btn btn-sm btn-link">View Video</a>
+                        </dd>
+                        {% endif %}
+                    </dl>
+                </div>
+            </div>
+        </div>
+
+        <!-- Railway Deployment Info (Collapsible) -->
+        {% if deployment.railway_project_id %}
+        <div class="mb-3">
+            <button class="btn btn-sm btn-outline-primary w-100 text-start" type="button" data-bs-toggle="collapse" data-bs-target="#railwayInfo" aria-expanded="false" aria-controls="railwayInfo">
+                <strong>Railway Deployment Information</strong> <span class="float-end">▼</span>
+            </button>
+            <div class="collapse" id="railwayInfo">
+                <div class="card card-body mt-2" style="background-color: transparent; border: 1px solid var(--primary-red);">
+                    <dl class="row mb-0">
+                        <dt class="col-sm-3">Railway Project ID:</dt>
+                        <dd class="col-sm-9">
+                            <code>{{ deployment.railway_project_id }}</code>
+                            <a href="https://railway.app/project/{{ deployment.railway_project_id }}" target="_blank" class="btn btn-sm btn-link">View on Railway</a>
+                        </dd>
+                        
+                        {% if deployment.railway_service_id %}
+                        <dt class="col-sm-3">Railway Service ID:</dt>
+                        <dd class="col-sm-9"><code>{{ deployment.railway_service_id }}</code></dd>
+                        {% endif %}
+                    </dl>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- Metadata (Collapsible) -->
+        <div class="mb-3">
+            <button class="btn btn-sm btn-outline-secondary w-100 text-start" type="button" data-bs-toggle="collapse" data-bs-target="#metadata" aria-expanded="false" aria-controls="metadata">
+                <strong>Metadata</strong> <span class="float-end">▼</span>
+            </button>
+            <div class="collapse" id="metadata">
+                <div class="card card-body mt-2" style="background-color: transparent; border: 1px solid var(--primary-red);">
+                    <dl class="row mb-0">
+                        <dt class="col-sm-3">Created:</dt>
+                        <dd class="col-sm-9">{{ deployment.created_at|date:"F d, Y H:i:s" }}</dd>
+
+                        <dt class="col-sm-3">Last Updated:</dt>
+                        <dd class="col-sm-9">{{ deployment.updated_at|date:"F d, Y H:i:s" }}</dd>
+                    </dl>
+                </div>
+            </div>
+        </div>
 
         <div class="mt-4">
             <div class="d-flex gap-2">
@@ -116,6 +153,24 @@ document.addEventListener('DOMContentLoaded', function() {
     height: 1rem;
     border-width: 0.15em;
     margin-left: 8px;
+}
+
+/* Collapsible Button Styling */
+[data-bs-toggle="collapse"] {
+    transition: all 0.3s ease;
+}
+
+[data-bs-toggle="collapse"]:not(.collapsed) .float-end {
+    transform: rotate(180deg);
+    transition: transform 0.3s ease;
+}
+
+[data-bs-toggle="collapse"] .float-end {
+    transition: transform 0.3s ease;
+}
+
+.collapse .card {
+    border-radius: 5px;
 }
 </style>
 {% endblock %}
