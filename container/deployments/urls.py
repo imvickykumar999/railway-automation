@@ -10,5 +10,6 @@ urlpatterns = [
     path('<int:pk>/edit/', views.deployment_edit, name='deployment_edit'),
     path('<int:pk>/delete/', views.deployment_delete, name='deployment_delete'),
     path('<int:pk>/deploy/', views.deployment_deploy, name='deployment_deploy'),
+    path('<int:pk>/logs/', views.deployment_logs, name='deployment_logs'),
 ]
 

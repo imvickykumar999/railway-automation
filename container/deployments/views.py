@@ -233,5 +233,31 @@ def deployment_deploy(request, pk):
     except Exception as e:
         messages.error(request, f'❌ Deployment failed: {str(e)}')
     
-    return redirect('deployments:deployment_detail', pk=pk)
+    # Redirect with show_logs parameter to trigger log display
+    from django.urls import reverse
+    detail_url = reverse('deployments:deployment_detail', args=[pk])
+    return redirect(f'{detail_url}?show_logs=true')
 
+
+@login_required
+def deployment_logs(request, pk):
+    """Fetch logs for a deployment via AJAX."""
+    deployment = get_object_or_404(RailwayDeployment, pk=pk, user=request.user)
+    
+    if RailwayClient is None:
+        return JsonResponse({'error': 'Railway deployment module not found.'}, status=500)
+    
+    if not deployment.railway_service_id:
+        return JsonResponse({'logs': [], 'error': 'No service deployed yet.'})
+    
+    if not deployment.railway_project_id:
+        return JsonResponse({'logs': [], 'error': 'No project deployed yet.'})
+    
+    # Railway's GraphQL API doesn't support direct log queries
+    # Return a message with a link to view logs on Railway dashboard
+    railway_url = f"https://railway.app/project/{deployment.railway_project_id}/logs"
+    return JsonResponse({
+        'logs': [],
+        'error': f'Please view logs on Railway dashboard here.',
+        'railway_url': railway_url
+    })

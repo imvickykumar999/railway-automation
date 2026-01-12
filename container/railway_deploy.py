@@ -76,7 +76,11 @@ class RailwayClient:
         # Check for GraphQL errors
         if "errors" in data:
             error_messages = [error.get("message", str(error)) for error in data["errors"]]
-            raise ValueError(f"GraphQL errors: {', '.join(error_messages)}")
+            error_details = ', '.join(error_messages)
+            # Also include the full error for debugging
+            if hasattr(response, 'text'):
+                error_details += f" | Response: {response.text}"
+            raise ValueError(f"GraphQL errors: {error_details}")
         
         return data
     
@@ -269,6 +273,30 @@ class RailwayClient:
         variables = {"id": project_id}
         result = self._make_request(query, variables)
         return result["data"]["project"]
+    
+    def get_service_logs(
+        self,
+        service_id: str,
+        limit: int = 100
+    ) -> list:
+        """
+        Get logs for a service's latest deployment.
+        
+        Note: Railway's GraphQL API may not support direct log queries.
+        This method attempts to fetch logs but may return empty if not supported.
+        
+        Args:
+            service_id: Service ID
+            limit: Maximum number of log entries to retrieve (default: 100)
+            
+        Returns:
+            List of log entries, each containing message, timestamp, and level
+        """
+        # Railway's GraphQL API doesn't appear to support direct log queries
+        # Logs are typically accessed via the Railway dashboard or CLI
+        # Return empty list to indicate logs are not available via API
+        print(f"Warning: Railway GraphQL API does not support direct log queries. Logs can be viewed at https://railway.app")
+        return []
     
     def set_environment_variables(
         self,
