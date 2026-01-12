@@ -1,5 +1,33 @@
 from django import forms
+from django.contrib.auth.forms import UserCreationForm, AuthenticationForm
 from .models import RailwayDeployment
+
+
+class CustomAuthenticationForm(AuthenticationForm):
+    """Custom authentication form with styled fields."""
+    
+    username = forms.CharField(
+        widget=forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Username'})
+    )
+    password = forms.CharField(
+        widget=forms.PasswordInput(attrs={'class': 'form-control', 'placeholder': 'Password'})
+    )
+
+
+class CustomUserCreationForm(UserCreationForm):
+    """Custom user creation form with styled fields."""
+    
+    username = forms.CharField(
+        widget=forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Username'})
+    )
+    password1 = forms.CharField(
+        widget=forms.PasswordInput(attrs={'class': 'form-control', 'placeholder': 'Password'}),
+        help_text="Your password must contain at least 8 characters."
+    )
+    password2 = forms.CharField(
+        widget=forms.PasswordInput(attrs={'class': 'form-control', 'placeholder': 'Password confirmation'}),
+        help_text="Enter the same password as before, for verification."
+    )
 
 
 class RailwayDeploymentForm(forms.ModelForm):

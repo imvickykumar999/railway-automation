@@ -2,6 +2,7 @@ import os
 import sys
 from django.shortcuts import render, redirect
 from django.contrib import messages
+from django.contrib.auth.decorators import login_required
 from django.http import JsonResponse
 from django.utils.safestring import mark_safe
 from .models import RailwayDeployment
@@ -18,6 +19,7 @@ except ImportError:
     RailwayClient = None
 
 
+@login_required
 def deployment_form(request):
     """Handle the deployment configuration form."""
     if request.method == 'POST':
@@ -35,12 +37,14 @@ def deployment_form(request):
     return render(request, 'deployments/form.html', {'form': form})
 
 
+@login_required
 def deployment_list(request):
     """Display list of all deployment configurations."""
     deployments = RailwayDeployment.objects.all()
     return render(request, 'deployments/list.html', {'deployments': deployments})
 
 
+@login_required
 def deployment_detail(request, pk):
     """Display details of a specific deployment configuration."""
     try:
@@ -52,6 +56,7 @@ def deployment_detail(request, pk):
     return render(request, 'deployments/detail.html', {'deployment': deployment})
 
 
+@login_required
 def deployment_edit(request, pk):
     """Edit an existing deployment configuration."""
     try:
@@ -72,6 +77,7 @@ def deployment_edit(request, pk):
     return render(request, 'deployments/form.html', {'form': form, 'deployment': deployment})
 
 
+@login_required
 def deployment_delete(request, pk):
     """Delete a deployment configuration and Railway project."""
     try:
@@ -130,6 +136,7 @@ def deployment_delete(request, pk):
     return render(request, 'deployments/delete.html', {'deployment': deployment})
 
 
+@login_required
 def deployment_deploy(request, pk):
     """Deploy the configuration to Railway."""
     if request.method != 'POST':

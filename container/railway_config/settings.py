@@ -140,6 +140,11 @@ STATIC_ROOT = BASE_DIR / 'staticfiles'
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
+# Authentication settings
+LOGIN_URL = 'login'
+LOGIN_REDIRECT_URL = 'deployments:deployment_list'
+LOGOUT_REDIRECT_URL = 'login'
+
 
 # Django Jazzmin Configuration
 # https://django-jazzmin.readthedocs.io/configuration/
