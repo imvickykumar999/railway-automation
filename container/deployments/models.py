@@ -1,10 +1,21 @@
 from django.db import models
 from django.core.validators import URLValidator
 from django.core.exceptions import ValidationError
+from django.contrib.auth.models import User
 
 
 class RailwayDeployment(models.Model):
     """Model to store Railway deployment configuration."""
+    
+    # User who owns this deployment
+    user = models.ForeignKey(
+        User,
+        on_delete=models.CASCADE,
+        related_name='deployments',
+        verbose_name='Owner',
+        null=True,
+        blank=True
+    )
     
     # Required fields
     railway_token = models.CharField(

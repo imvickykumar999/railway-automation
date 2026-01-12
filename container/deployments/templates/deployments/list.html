@@ -26,9 +26,8 @@
                         <small class="text-muted">Created: {{ deployment.created_at|date:"M d, Y H:i" }}</small>
                     </p>
                     <div class="d-flex gap-2" role="group">
-                        <a href="{% url 'deployments:deployment_detail' deployment.pk %}" class="btn btn-sm btn-outline-primary flex-fill">View</a>
+                        <a href="{% url 'deployments:deployment_detail' deployment.pk %}" class="btn btn-sm btn-primary flex-fill">Stream</a>
                         <a href="{% url 'deployments:deployment_edit' deployment.pk %}" class="btn btn-sm btn-outline-secondary flex-fill">Edit</a>
-                        <a href="{% url 'deployments:deployment_delete' deployment.pk %}" class="btn btn-sm btn-outline-danger flex-fill">Delete</a>
                     </div>
                 </div>
             </div>

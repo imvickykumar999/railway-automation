@@ -1,6 +1,6 @@
 import os
 import sys
-from django.shortcuts import render, redirect
+from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.http import JsonResponse
@@ -25,7 +25,9 @@ def deployment_form(request):
     if request.method == 'POST':
         form = RailwayDeploymentForm(request.POST)
         if form.is_valid():
-            deployment = form.save()
+            deployment = form.save(commit=False)
+            deployment.user = request.user
+            deployment.save()
             messages.success(
                 request,
                 f'Deployment configuration "{deployment.project_name}" saved successfully!'
@@ -39,31 +41,22 @@ def deployment_form(request):
 
 @login_required
 def deployment_list(request):
-    """Display list of all deployment configurations."""
-    deployments = RailwayDeployment.objects.all()
+    """Display list of all deployment configurations for the current user."""
+    deployments = RailwayDeployment.objects.filter(user=request.user)
     return render(request, 'deployments/list.html', {'deployments': deployments})
 
 
 @login_required
 def deployment_detail(request, pk):
     """Display details of a specific deployment configuration."""
-    try:
-        deployment = RailwayDeployment.objects.get(pk=pk)
-    except RailwayDeployment.DoesNotExist:
-        messages.error(request, 'Deployment configuration not found.')
-        return redirect('deployments:deployment_list')
-    
+    deployment = get_object_or_404(RailwayDeployment, pk=pk, user=request.user)
     return render(request, 'deployments/detail.html', {'deployment': deployment})
 
 
 @login_required
 def deployment_edit(request, pk):
     """Edit an existing deployment configuration."""
-    try:
-        deployment = RailwayDeployment.objects.get(pk=pk)
-    except RailwayDeployment.DoesNotExist:
-        messages.error(request, 'Deployment configuration not found.')
-        return redirect('deployments:deployment_list')
+    deployment = get_object_or_404(RailwayDeployment, pk=pk, user=request.user)
     
     if request.method == 'POST':
         form = RailwayDeploymentForm(request.POST, instance=deployment)
@@ -80,9 +73,9 @@ def deployment_edit(request, pk):
 @login_required
 def deployment_delete(request, pk):
     """Delete a deployment configuration and Railway project."""
-    try:
-        deployment = RailwayDeployment.objects.get(pk=pk)
-        if request.method == 'POST':
+    deployment = get_object_or_404(RailwayDeployment, pk=pk, user=request.user)
+    
+    if request.method == 'POST':
             # Delete Railway project if it exists
             if deployment.railway_project_id and RailwayClient is not None:
                 try:
@@ -129,9 +122,6 @@ def deployment_delete(request, pk):
                 messages.success(request, f'Deployment configuration "{project_name}" deleted successfully!')
             
             return redirect('deployments:deployment_list')
-    except RailwayDeployment.DoesNotExist:
-        messages.error(request, 'Deployment configuration not found.')
-        return redirect('deployments:deployment_list')
     
     return render(request, 'deployments/delete.html', {'deployment': deployment})
 
@@ -143,11 +133,7 @@ def deployment_deploy(request, pk):
         messages.error(request, 'Invalid request method.')
         return redirect('deployments:deployment_detail', pk=pk)
     
-    try:
-        deployment = RailwayDeployment.objects.get(pk=pk)
-    except RailwayDeployment.DoesNotExist:
-        messages.error(request, 'Deployment configuration not found.')
-        return redirect('deployments:deployment_list')
+    deployment = get_object_or_404(RailwayDeployment, pk=pk, user=request.user)
     
     if RailwayClient is None:
         messages.error(request, 'Railway deployment module not found. Please ensure railway_deploy.py is available.')
