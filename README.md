@@ -1,6 +1,10 @@
-# Railway Automation
+# 24x7 Live Streaming
 
-Automatically deploy Docker containers to Railway with environment variables configured.
+      Automatically deploy Docker containers to Railway with environment variables configured.
+
+<img width="1535" height="983" alt="image" src="https://github.com/user-attachments/assets/886bdf07-c491-4d81-b843-78ded7b8c6e7" />
+
+<img width="1535" height="983" alt="image" src="https://github.com/user-attachments/assets/140a508e-1843-4056-a3f7-35ccfd868b68" />
 
 ## Prerequisites
 
