@@ -12,7 +12,7 @@ Automatically deploy Docker containers to Railway with environment variables con
 
 1. **Clone this repository:**
    ```bash
-   git clone <repository-url>
+   git clone https://github.com/imvickykumar999/railway-automation
    cd railway-automation
    ```
 
