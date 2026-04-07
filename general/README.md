@@ -19,12 +19,12 @@ docker pull imvickykumar999/railway-automation:latest
 # Run Container
 
 ```powershell
-docker run -d --name railway-automation -p 8000:8000 imvickykumar999/railway-automation:latest
+docker run -d --name railway-automation -p 5000:5000 imvickykumar999/railway-automation:latest
 ```
 
 * `-d` → Run in background
 * `--name railway-automation` → Assign container name
-* `-p 8000:8000` → Map host port to container port
+* `-p 5000:5000` → Map host port to container port
 
 ---
 
@@ -126,5 +126,5 @@ docker pull imvickykumar999/railway-automation:latest
 docker stop railway-automation
 docker rm railway-automation
 docker pull imvickykumar999/railway-automation:latest
-docker run -d --name railway-automation -p 8000:8000 imvickykumar999/railway-automation:latest
+docker run -d --name railway-automation -p 5000:5000 imvickykumar999/railway-automation:latest
 ```
