@@ -74,38 +74,6 @@ class RailwayClient:
         })
         return result["serviceCreate"]["id"]
 
-    def get_first_environment_id(self, project_id: str) -> str:
-        query = """
-        query GetEnvs($projectId: String!) {
-            environments(projectId: $projectId) {
-                edges { node { id } }
-            }
-        }
-        """
-        result = self._execute(query, {"projectId": project_id})
-        envs = result.get("environments", {}).get("edges", [])
-        if not envs:
-            raise ValueError("No environments found in project.")
-        return envs[0]["node"]["id"]
-
-    def set_variables(self, project_id: str, env_id: str, service_id: str, variables: Dict[str, str]):
-        mutation = """
-        mutation UpsertVar($input: VariableUpsertInput!) {
-            variableUpsert(input: $input)
-        }
-        """
-        for k, v in variables.items():
-            if not v: continue
-            self._execute(mutation, {
-                "input": {
-                    "projectId": project_id,
-                    "environmentId": env_id,
-                    "serviceId": service_id,
-                    "name": k,
-                    "value": v
-                }
-            })
-
 # --- God Level UI Template ---
 
 INDEX_TEMPLATE = """
@@ -143,32 +111,18 @@ INDEX_TEMPLATE = """
             transform: translateY(-2px);
             box-shadow: 0 10px 15px -3px rgba(37, 99, 235, 0.4);
         }
-        .gradient-button:active {
-            transform: translateY(0px);
-        }
-        ::-webkit-scrollbar {
-            width: 8px;
-        }
-        ::-webkit-scrollbar-track {
-            background: #0f172a;
-        }
-        ::-webkit-scrollbar-thumb {
-            background: #334155;
-            border-radius: 4px;
-        }
-        ::-webkit-scrollbar-thumb:hover {
-            background: #475569;
-        }
         .loading-overlay {
             display: none;
             position: fixed;
             inset: 0;
             background: rgba(15, 23, 42, 0.9);
             z-index: 50;
-            backdrop-filter: blur(4px);
+            backdrop-filter: blur(8px);
             flex-direction: column;
             align-items: center;
             justify-content: center;
+            text-align: center;
+            padding: 20px;
         }
     </style>
 </head>
@@ -176,9 +130,9 @@ INDEX_TEMPLATE = """
 
     <!-- Global Loading State -->
     <div id="loadingOverlay" class="loading-overlay">
-        <div class="animate-spin rounded-full h-16 w-16 border-t-4 border-b-4 border-blue-500 mb-4"></div>
-        <h2 class="text-xl font-bold tracking-tight text-white">Initializing Launch Sequence</h2>
-        <p class="text-slate-400 text-sm mt-2">Communicating with Railway API Cluster...</p>
+        <div class="animate-spin rounded-full h-16 w-16 border-t-4 border-b-4 border-blue-500 mb-6"></div>
+        <h2 class="text-2xl font-bold tracking-tight text-white mb-2">Executing Deployment</h2>
+        <p class="text-slate-400 text-sm max-w-xs">Provisioning infrastructure and establishing service connection...</p>
     </div>
 
     <div class="max-w-2xl w-full glass-card rounded-3xl overflow-hidden transition-all duration-500">
@@ -203,10 +157,10 @@ INDEX_TEMPLATE = """
                         <i data-lucide="shield-check" class="w-3 h-3"></i>
                         <span>Railway API Token</span>
                     </label>
-                    <span class="text-[10px] text-slate-500 font-mono">Project Settings >> Tokens</span>
                 </div>
                 <div class="relative">
-                    <input type="password" name="railway_token" required placeholder="Enter your Railway API token"
+                    <input type="password" name="railway_token" required placeholder="Paste your Workspace Token"
+                           value="{{ default_token }}"
                            class="w-full bg-slate-900/50 border border-white/10 rounded-xl p-4 text-white placeholder-slate-600 focus:outline-none input-glow transition-all duration-200">
                 </div>
             </div>
@@ -215,52 +169,31 @@ INDEX_TEMPLATE = """
             <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div class="space-y-2">
                     <label class="text-xs font-bold uppercase tracking-widest text-slate-400 px-1">Project Identifier</label>
-                    <input type="text" name="project_name" required placeholder="Onion Vanity"
+                    <input type="text" name="project_name" required placeholder="Blog Forge" value="Blog Forge"
                            class="w-full bg-slate-900/50 border border-white/10 rounded-xl p-4 text-white focus:outline-none input-glow transition-all">
                 </div>
                 <div class="space-y-2">
                     <label class="text-xs font-bold uppercase tracking-widest text-slate-400 px-1">Registry Image</label>
-                    <input type="text" name="docker_image" required placeholder="imvickykumar999/onion-vanity"
+                    <input type="text" name="docker_image" required value="imvickykumar999/blogforge"
                            class="w-full bg-slate-900/50 border border-white/10 rounded-xl p-4 text-white focus:outline-none input-glow transition-all">
                 </div>
             </div>
 
             <!-- Service Details -->
-            <div class="space-y-2">
+            <div class="space-y-2 pb-4">
                 <label class="text-xs font-bold uppercase tracking-widest text-slate-400 px-1">Service Label</label>
-                <input type="text" name="service_name" placeholder="OnionVanity"
+                <input type="text" name="service_name" placeholder="blogforge" value="blogforge"
                        class="w-full bg-slate-900/50 border border-white/10 rounded-xl p-4 text-white focus:outline-none input-glow transition-all">
-            </div>
-
-            <!-- Env Variables -->
-            <div class="space-y-4">
-                <div class="flex items-center justify-between border-b border-white/5 pb-2">
-                    <label class="text-xs font-bold uppercase tracking-widest text-slate-400">Environment Config</label>
-                    <button type="button" onclick="addVarRow()" 
-                            class="text-[11px] font-bold text-blue-400 hover:text-blue-300 flex items-center space-x-1 uppercase tracking-tighter">
-                        <i data-lucide="plus-circle" class="w-3 h-3"></i>
-                        <span>Add Field</span>
-                    </button>
-                </div>
-                
-                <div id="vars-container" class="space-y-3 max-h-48 overflow-y-auto pr-2">
-                    <div class="flex gap-3 group">
-                        <input type="text" name="var_key[]" placeholder="KEY" 
-                               class="flex-1 bg-slate-900/50 border border-white/10 rounded-lg p-3 text-sm focus:outline-none focus:border-blue-500 transition-all uppercase placeholder:normal-case">
-                        <input type="text" name="var_val[]" placeholder="VALUE" 
-                               class="flex-1 bg-slate-900/50 border border-white/10 rounded-lg p-3 text-sm focus:outline-none focus:border-blue-500 transition-all">
-                    </div>
-                </div>
             </div>
 
             <!-- Notifications -->
             {% with messages = get_flashed_messages(with_categories=true) %}
               {% if messages %}
                 {% for category, message in messages %}
-                  <div class="flex items-center p-4 rounded-xl text-sm
+                  <div class="flex items-start p-4 rounded-xl text-sm leading-relaxed
                       {{ 'bg-red-500/10 text-red-400 border border-red-500/20' if category == 'error' else 'bg-green-500/10 text-green-400 border border-green-500/20' }}">
-                    <i data-lucide="{{ 'alert-circle' if category == 'error' else 'check-circle' }}" class="w-4 h-4 mr-3"></i>
-                    {{ message }}
+                    <i data-lucide="{{ 'alert-circle' if category == 'error' else 'check-circle' }}" class="w-4 h-4 mr-3 mt-0.5 shrink-0"></i>
+                    <span>{{ message }}</span>
                   </div>
                 {% endfor %}
               {% endif %}
@@ -268,34 +201,21 @@ INDEX_TEMPLATE = """
 
             <!-- Submit -->
             <button type="submit" id="submitBtn"
-                    class="w-full gradient-button text-white font-bold py-5 rounded-2xl flex items-center justify-center space-x-3 text-lg">
-                <span id="btnText">Initialize Launch Sequence</span>
+                    class="w-full gradient-button text-white font-bold py-5 rounded-2xl flex items-center justify-center space-x-3 text-lg shadow-xl">
+                <span>Execute Launch Sequence</span>
                 <i data-lucide="chevron-right" class="w-5 h-5"></i>
             </button>
         </form>
     </div>
 
     <script>
-        // Initialize Icons
         lucide.createIcons();
-
-        function addVarRow() {
-            const container = document.getElementById('vars-container');
-            const div = document.createElement('div');
-            div.className = 'flex gap-3 animate-in slide-in-from-left duration-300';
-            div.innerHTML = `
-                <input type="text" name="var_key[]" placeholder="KEY" class="flex-1 bg-slate-900/50 border border-white/10 rounded-lg p-3 text-sm focus:outline-none focus:border-blue-500 transition-all uppercase placeholder:normal-case">
-                <input type="text" name="var_val[]" placeholder="VALUE" class="flex-1 bg-slate-900/50 border border-white/10 rounded-lg p-3 text-sm focus:outline-none focus:border-blue-500 transition-all">
-            `;
-            container.appendChild(div);
-            container.scrollTop = container.scrollHeight;
-        }
 
         document.getElementById('deployForm').onsubmit = function() {
             document.getElementById('loadingOverlay').style.display = 'flex';
             const btn = document.getElementById('submitBtn');
             btn.disabled = true;
-            btn.classList.add('opacity-50', 'cursor-not-allowed');
+            btn.classList.add('opacity-50');
         };
     </script>
 </body>
@@ -320,10 +240,6 @@ def deploy_action():
     proj_name = request.form.get('project_name')
     image = request.form.get('docker_image')
     svc_name = request.form.get('service_name') or "web-service"
-    
-    keys = request.form.getlist('var_key[]')
-    vals = request.form.getlist('var_val[]')
-    env_vars = {k: v for k, v in zip(keys, vals) if k.strip()}
 
     try:
         client = RailwayClient(token)
@@ -332,16 +248,9 @@ def deploy_action():
         project_id = client.create_project(proj_name)
         
         logger.info(f"Mounting service: {svc_name}")
-        service_id = client.create_service(project_id, svc_name, image)
+        client.create_service(project_id, svc_name, image)
         
-        logger.info("Detecting environment ID...")
-        env_id = client.get_first_environment_id(project_id)
-        
-        if env_vars:
-            logger.info(f"Injecting {len(env_vars)} variables...")
-            client.set_variables(project_id, env_id, service_id, env_vars)
-        
-        # Open in same tab via direct script execution
+        # Immediate redirect to the same tab
         return render_template_string("""
             <script>
                 window.location.href = 'https://railway.app/project/{{ pid }}';
@@ -350,7 +259,7 @@ def deploy_action():
 
     except Exception as e:
         logger.exception("Deploy Failed")
-        flash(f"Transmission Error: {str(e)}", "error")
+        flash(str(e), "error")
         return redirect(url_for('index'))
 
 if __name__ == '__main__':
