@@ -154,3 +154,5 @@ docker images | Select-String "railway-automation"
 docker login
 docker push imvickykumar999/railway-automation:latest
 ```
+
+![ss](https://github.com/user-attachments/assets/5e259979-960b-4738-b176-50ff09d7a5d7)
