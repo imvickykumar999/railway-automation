@@ -169,12 +169,12 @@ INDEX_TEMPLATE = """
             <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div class="space-y-2">
                     <label class="text-xs font-bold uppercase tracking-widest text-slate-400 px-1">Project Identifier</label>
-                    <input type="text" name="project_name" required placeholder="Blog Forge" value="Blog Forge"
+                    <input type="text" name="project_name" required placeholder="Railway Automation" value="Railway Automation"
                            class="w-full bg-slate-900/50 border border-white/10 rounded-xl p-4 text-white focus:outline-none input-glow transition-all">
                 </div>
                 <div class="space-y-2">
                     <label class="text-xs font-bold uppercase tracking-widest text-slate-400 px-1">Registry Image</label>
-                    <input type="text" name="docker_image" required value="imvickykumar999/blogforge"
+                    <input type="text" name="docker_image" required value="imvickykumar999/railway-automation" placeholder="imvickykumar999/railway-automation"
                            class="w-full bg-slate-900/50 border border-white/10 rounded-xl p-4 text-white focus:outline-none input-glow transition-all">
                 </div>
             </div>
@@ -182,7 +182,7 @@ INDEX_TEMPLATE = """
             <!-- Service Details -->
             <div class="space-y-2 pb-4">
                 <label class="text-xs font-bold uppercase tracking-widest text-slate-400 px-1">Service Label</label>
-                <input type="text" name="service_name" placeholder="blogforge" value="blogforge"
+                <input type="text" name="service_name" placeholder="RailwayAutomation" value="RailwayAutomation"
                        class="w-full bg-slate-900/50 border border-white/10 rounded-xl p-4 text-white focus:outline-none input-glow transition-all">
             </div>
 

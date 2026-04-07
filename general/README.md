@@ -8,7 +8,7 @@ Docker image for running **railway-automation** container using Docker Hub.
 
 ---
 
-# Pull Image from Docker Hub
+## Pull Image from Docker Hub
 
 ```powershell
 docker pull imvickykumar999/railway-automation:latest
@@ -16,7 +16,7 @@ docker pull imvickykumar999/railway-automation:latest
 
 ---
 
-# Run Container
+## Run Container
 
 ```powershell
 docker run -d --name railway-automation -p 5000:5000 imvickykumar999/railway-automation:latest
@@ -28,7 +28,7 @@ docker run -d --name railway-automation -p 5000:5000 imvickykumar999/railway-aut
 
 ---
 
-# Check Running Containers
+## Check Running Containers
 
 ```powershell
 docker ps
@@ -42,7 +42,7 @@ docker ps -a
 
 ---
 
-# Stop Container
+## Stop Container
 
 ```powershell
 docker stop railway-automation
@@ -50,7 +50,7 @@ docker stop railway-automation
 
 ---
 
-# Start Container Again
+## Start Container Again
 
 ```powershell
 docker start railway-automation
@@ -58,7 +58,7 @@ docker start railway-automation
 
 ---
 
-# Restart Container
+## Restart Container
 
 ```powershell
 docker restart railway-automation
@@ -66,7 +66,7 @@ docker restart railway-automation
 
 ---
 
-# Remove Container
+## Remove Container
 
 First stop it:
 
@@ -82,7 +82,7 @@ docker rm railway-automation
 
 ---
 
-# Remove Docker Image
+## Remove Docker Image
 
 ```powershell
 docker rmi imvickykumar999/railway-automation:latest
@@ -90,7 +90,7 @@ docker rmi imvickykumar999/railway-automation:latest
 
 ---
 
-# View Container Logs
+## View Container Logs
 
 ```powershell
 docker logs railway-automation
@@ -98,7 +98,7 @@ docker logs railway-automation
 
 ---
 
-# Enter Running Container
+## Enter Running Container
 
 ```powershell
 docker exec -it railway-automation powershell
@@ -112,7 +112,7 @@ docker exec -it railway-automation sh
 
 ---
 
-# Pull Latest Version Again
+## Pull Latest Version Again
 
 ```powershell
 docker pull imvickykumar999/railway-automation:latest
@@ -120,11 +120,35 @@ docker pull imvickykumar999/railway-automation:latest
 
 ---
 
-# Full Reset (Remove old + Run fresh)
+## Full Reset (Remove old + Run fresh)
 
 ```powershell
 docker stop railway-automation
 docker rm railway-automation
 docker pull imvickykumar999/railway-automation:latest
 docker run -d --name railway-automation -p 5000:5000 imvickykumar999/railway-automation:latest
+```
+
+## Deployment Instructions (Windows PowerShell)
+
+1.  **Build the Image:**
+    Execute this command in your project root to build the container locally:
+
+```powershell
+docker build -t imvickykumar999/railway-automation:latest .
+```
+    
+2.  **Verify the Build:**
+    Ensure the image was created successfully:
+
+```powershell
+docker images | Select-String "railway-automation"
+```
+    
+3.  **Push to Docker Hub:**
+    First, ensure you are logged in, then push the image:
+
+```powershell
+docker login
+docker push imvickykumar999/railway-automation:latest
 ```
